@@ -1,14 +1,23 @@
 """Download videos and extract public metrics from any platform using yt-dlp."""
 import json
+import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from .config import detect_platform
 
 
+def _ytdlp_cmd():
+    """Find yt-dlp command - binary or python module."""
+    if shutil.which("yt-dlp"):
+        return ["yt-dlp"]
+    return [sys.executable, "-m", "yt_dlp"]
+
+
 def get_metadata(url):
     """Get video metadata (views, likes, duration, etc.) without downloading."""
-    cmd = ["yt-dlp", "--dump-json", "--no-download", url]
+    cmd = _ytdlp_cmd() + ["--dump-json", "--no-download", url]
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     if result.returncode != 0:
         raise RuntimeError(f"yt-dlp metadata failed: {result.stderr[:200]}")
@@ -51,8 +60,7 @@ def download_video(url, output_dir, quality="worst"):
     filename = f"{safe_title}_{video_id}"
 
     output_template = str(output_dir / f"{filename}.%(ext)s")
-    cmd = [
-        "yt-dlp",
+    cmd = _ytdlp_cmd() + [
         "-f", f"{quality}[ext=mp4]/{quality}",
         "--max-filesize", "500M",
         "-o", output_template,
@@ -71,8 +79,7 @@ def download_video(url, output_dir, quality="worst"):
 
 def list_channel_videos(channel_url, max_videos=50):
     """List video URLs from a channel/profile."""
-    cmd = [
-        "yt-dlp",
+    cmd = _ytdlp_cmd() + [
         "--flat-playlist",
         "--dump-json",
         "--playlist-end", str(max_videos),

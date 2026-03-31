@@ -240,30 +240,31 @@ Examples:
         """
     )
 
-    # Global args
-    parser.add_argument("--preset", default="pod", choices=["local-small", "local-medium", "pod"],
-                        help="GPU/model preset (default: pod)")
-    parser.add_argument("--fps", type=int, help="Frames per second (overrides preset)")
-    parser.add_argument("--batch-size", type=int, help="Frames per VLM batch (overrides preset)")
-    parser.add_argument("--no-audio", action="store_true", help="Skip audio transcription")
-    parser.add_argument("--json", action="store_true", help="Output as JSON")
-    parser.add_argument("-o", "--output", help="Save output to file")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
-
     sub = parser.add_subparsers(dest="command", required=True)
 
+    # Shared args added to each subparser so order doesn't matter
+    shared = argparse.ArgumentParser(add_help=False)
+    shared.add_argument("--preset", default="pod", choices=["local-small", "local-medium", "pod"],
+                        help="GPU/model preset (default: pod)")
+    shared.add_argument("--fps", type=int, help="Frames per second (overrides preset)")
+    shared.add_argument("--batch-size", type=int, help="Frames per VLM batch (overrides preset)")
+    shared.add_argument("--no-audio", action="store_true", help="Skip audio transcription")
+    shared.add_argument("--json", action="store_true", help="Output as JSON")
+    shared.add_argument("-o", "--output", help="Save output to file")
+    shared.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
     # analyze
-    p_analyze = sub.add_parser("analyze", help="Analyze a single video (file or URL)")
+    p_analyze = sub.add_parser("analyze", parents=[shared], help="Analyze a single video (file or URL)")
     p_analyze.add_argument("video", help="Video file path or URL")
     p_analyze.add_argument("--hint", help="Description hint for better analysis")
 
     # spy
-    p_spy = sub.add_parser("spy", help="Spy on a channel (public metrics only)")
+    p_spy = sub.add_parser("spy", parents=[shared], help="Spy on a channel (public metrics only)")
     p_spy.add_argument("channel", help="Channel/profile URL")
     p_spy.add_argument("--last", type=int, default=20, help="Number of recent videos (default: 20)")
 
     # study
-    p_study = sub.add_parser("study", help="Study your channel with private metrics")
+    p_study = sub.add_parser("study", parents=[shared], help="Study your channel with private metrics")
     p_study.add_argument("--csv", required=True, help="Path to analytics CSV export")
     p_study.add_argument("--channel", help="Channel name for report header")
     p_study.add_argument("--platform", default="generic",

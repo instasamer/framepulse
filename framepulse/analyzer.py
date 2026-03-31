@@ -1,5 +1,5 @@
 """Core video analysis engine: frame extraction + Whisper + VLM."""
-import sys, os, tempfile, subprocess, time, gc
+import sys, os, shutil, tempfile, subprocess, time, gc
 import cv2
 import numpy as np
 from PIL import Image
@@ -19,7 +19,8 @@ def extract_audio(video_path):
     """Extract audio as 16kHz mono WAV. Returns path or None."""
     tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
     tmp.close()
-    cmd = ["ffmpeg", "-y", "-i", video_path, "-vn",
+    ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
+    cmd = [ffmpeg, "-y", "-i", video_path, "-vn",
            "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", tmp.name]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0 or os.path.getsize(tmp.name) < 1000:
