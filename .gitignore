@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+*.wav
+*.mp4
+*.mkv
+*.avi
+*.webm
+results/
+frames/
+*.part
+.cache/
+*.unknown_video
